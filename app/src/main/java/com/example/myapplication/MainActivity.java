@@ -25,13 +25,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void onClickAboutButton(View view) {
+    public void launchAbout(View view) {
         Intent i = new Intent(this, AboutActivity.class);
         startActivity(i);
     }
 
     public void launchLog(View view) {
         Intent i = new Intent(this, LogActivity.class);
+        startActivity(i);
+    }
+
+    public void launchPlay(View view) {
+        Intent i = new Intent(this, PlayActivity.class);
         startActivity(i);
     }
 }

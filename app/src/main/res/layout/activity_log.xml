@@ -7,13 +7,81 @@
     android:layout_height="match_parent"
     tools:context=".LogActivity">
 
+
     <TextView
-        android:id="@+id/logger"
+        android:id="@+id/accelerometerHeading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:text="@string/accelerometer_statistics"
+        android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/xLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/x_label"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        app:layout_constraintStart_toStartOf="@+id/accelerometerHeading"
+        app:layout_constraintTop_toBottomOf="@+id/accelerometerHeading" />
+
+    <TextView
+        android:id="@+id/xLogger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="@string/placeholder_zero_with_decimals"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintBottom_toBottomOf="@+id/xLabel"
+        app:layout_constraintStart_toEndOf="@+id/xLabel"
+        app:layout_constraintTop_toTopOf="@+id/xLabel"
+        app:layout_constraintVertical_bias="0" />
+
+    <TextView
+        android:id="@+id/yLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/y_label"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        app:layout_constraintStart_toStartOf="@+id/xLabel"
+        app:layout_constraintTop_toBottomOf="@+id/xLabel" />
+
+    <TextView
+        android:id="@+id/yLogger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/placeholder_zero_with_decimals"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintBottom_toBottomOf="@+id/yLabel"
+        app:layout_constraintStart_toEndOf="@+id/yLabel"
+        app:layout_constraintStart_toStartOf="@+id/xLogger"
+        app:layout_constraintTop_toTopOf="@+id/yLabel" />
+
+    <TextView
+        android:id="@+id/zLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/z_label"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        app:layout_constraintStart_toStartOf="@+id/yLabel"
+        app:layout_constraintTop_toBottomOf="@+id/yLabel" />
+
+    <TextView
+        android:id="@+id/zLogger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/placeholder_zero_with_decimals"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        app:layout_constraintBottom_toBottomOf="@+id/zLabel"
+        app:layout_constraintStart_toEndOf="@+id/zLabel"
+        app:layout_constraintStart_toStartOf="@+id/yLogger"
+        app:layout_constraintTop_toTopOf="@+id/zLabel"
+        app:layout_constraintVertical_bias="0.0" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.annotation.SuppressLint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,15 +15,16 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class LogActivity extends AppCompatActivity implements SensorEventListener {
-    private final SensorManager mSensorManager;
-    private final Sensor mAccelerometer;
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
     final float alpha = 0.8f;
+    final TextView[] loggerViews = new TextView[3];
     final float[] gravity = new float[3];
     final float[] linear_acceleration = new float[3];
 
     public LogActivity() {
-        this.mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        this.mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+
     }
 
     @Override
@@ -35,6 +37,14 @@ public class LogActivity extends AppCompatActivity implements SensorEventListene
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+
+        loggerViews[0] = findViewById(R.id.xLogger);
+        loggerViews[1] = findViewById(R.id.yLogger);
+        loggerViews[2] = findViewById(R.id.zLogger);
     }
 
     @Override
@@ -49,19 +59,21 @@ public class LogActivity extends AppCompatActivity implements SensorEventListene
         mSensorManager.unregisterListener(this);
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void onSensorChanged(SensorEvent event) {
         gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
         gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
         gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
-
+        
         linear_acceleration[0] = event.values[0] - gravity[0];
         linear_acceleration[1] = event.values[1] - gravity[1];
         linear_acceleration[2] = event.values[2] - gravity[2];
+        
+        for (int i = 0; i < loggerViews.length; i++) {
+            loggerViews[i].setText(String.format("%.2f", linear_acceleration[i]));
 
-        ((TextView) findViewById(R.id.logger)).setText(
-                String.format("X: %s\n Y: %s\n Z: %s", gravity[0], gravity[1], gravity[2])
-        );
+        }
     }
 
     @Override

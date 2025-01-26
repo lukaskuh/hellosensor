@@ -12,25 +12,24 @@ public class SensorInterpreter implements SensorEventListener {
     // https://developer.android.com/develop/sensors-and-location/sensors/sensors_position#sensors-pos-orient
     private SensorManager sensorManager;
     private final float[] accelerometerReading = new float[3];
-    private final float[] magnetometerReading = new float[3];
-    private final float[] rawRotationMatrix = new float[9];
-    private final float[] transformedRotationMatrix = new float[9];
-    private final float[] orientationAngles = new float[3];
-    private final float[] calibrationAxis = new float[2];
 
     private final float[] UP = {0, 0, 1};
 
-    private final Vector3 gravity = new Vector3();
+    //private final Vector3 gravity = new Vector3();
+    private final float[] gravity = new float[3];
 
-    private float[] gravityMagnitudes = new float[5];
+    private final float[] gravityMagnitudes = new float[5];
     private int gravityMagnitudeIteration;
 
-    private final float ERROR_MARGIN = 0.4f;
-    private final float GRAVITY_LOWER_BOUNDS = SensorManager.GRAVITY_EARTH - ERROR_MARGIN/2;
-    private final float GRAVITY_UPPER_BOUNDS = SensorManager.GRAVITY_EARTH + ERROR_MARGIN/2;
-    private final float GRAVITY_THRESHOLD = SensorManager.GRAVITY_EARTH * 0.8f;
+    private static final float ERROR_MARGIN = 0.4f;
+    private static final float GRAVITY_LOWER_BOUNDS = SensorManager.GRAVITY_EARTH - ERROR_MARGIN/2;
+    private static final float GRAVITY_UPPER_BOUNDS = SensorManager.GRAVITY_EARTH + ERROR_MARGIN/2;
+    private static final float GRAVITY_THRESHOLD = SensorManager.GRAVITY_EARTH * 0.8f;
 
     private Orientation orientation;
+    private Orientation goal;
+    private float scoreAverage = 0.0f;
+    private float weight = 1.0f;
 
 
 
@@ -61,47 +60,127 @@ public class SensorInterpreter implements SensorEventListener {
             sensorManager.registerListener(this, accelerometer,
                     SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
         }
-        Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        if (magneticField != null) {
-            sensorManager.registerListener(this, magneticField,
-                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-        }
     }
 
 
     @SuppressLint("DefaultLocale")
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            gravity.set(event.values);
-            logGravityMagnitude(gravity.magnitude());
-            System.arraycopy(event.values, 0, accelerometerReading,
-                    0, accelerometerReading.length);
-        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            System.arraycopy(event.values, 0, magnetometerReading,
-                    0, magnetometerReading.length);
+        if (goal == null) {
+            return;
         }
 
-        updateOrientationAngles();
-        orientation = interpretOrientation();
-    }
-
-    // Compute the three orientation angles based on the most recent readings from
-    // the device's accelerometer and magnetometer.
-    public void updateOrientationAngles() {
-        // Update rotation matrix, which is needed to update orientation angles.
-        SensorManager.getRotationMatrix(rawRotationMatrix, null, accelerometerReading, magnetometerReading);
-
-        // "rotationMatrix" now has up-to-date information.
-
-        SensorManager.getOrientation(rawRotationMatrix, orientationAngles);
-
-        //SensorManager.remapCoordinateSystem(rawRotationMatrix, calibrationAxis[0], SensorManager.AXIS_X, transformedRotationMatrix);
-        // "orientationAngles" now has up-to-date information.
-
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            //gravity.set(event.values);
+            for (int i = 0; i < event.values.length; i++) {
+                gravity[i] = event.values[i];
+            }
+            logGravityMagnitude(getMagnitude(gravity));
+            calculateScoreAverage();
+            orientation = interpretOrientation();
+        }
 
     }
 
+    public boolean validateOrientation(Orientation goal) {
+        return goal == orientation;
+    }
+
+    public float getScoreAverage() {
+        return scoreAverage;
+    }
+
+    public void setGoalOrientation(Orientation goal) {
+        this.goal = goal;
+        this.weight = 1;
+        this.scoreAverage = 0.0f;
+    }
+
+
+
+    private void calculateScoreAverage() {
+
+
+        float magnitude = getAverageGravityMagnitude();
+        if (goal == Orientation.SHAKE && (magnitude < GRAVITY_LOWER_BOUNDS || magnitude > GRAVITY_UPPER_BOUNDS)) {
+            Log.d("INFO", "shaking");
+            updateScoreAverage(1.0f);
+            return;
+        }
+
+        //CLAMP!
+        float score = Math.min(Math.max(0, goal.dot(gravity, SensorManager.GRAVITY_EARTH)), 1);
+
+        Log.d("INFO", "GOAL: " + goal + ". DOT: " + score);
+        updateScoreAverage(score);
+        return;
+    }
+
+    private void updateScoreAverage(float score) {
+        scoreAverage = (scoreAverage + score * weight) / (1 + score);
+        weight += 0.1f;
+    }
+
+    private Orientation interpretOrientation() {
+        // -1: flat upside down
+        // 0: standing
+        // 1: flat
+        float magnitude = getAverageGravityMagnitude();
+
+        if (magnitude < GRAVITY_LOWER_BOUNDS || magnitude > GRAVITY_UPPER_BOUNDS) {
+            return Orientation.SHAKE;
+        }
+
+
+//        if (gravity.y > GRAVITY_THRESHOLD) {
+//            return Orientation.PORTRAIT;
+//        } else if (gravity.y < -GRAVITY_THRESHOLD) {
+//            return Orientation.PORTRAIT_REVERSE;
+//        } else if (gravity.z > GRAVITY_THRESHOLD) {
+//            return Orientation.FLAT;
+//        } else if (gravity.z < -GRAVITY_THRESHOLD) {
+//            return Orientation.FLAT_REVERSE;
+//        } else if (gravity.x > GRAVITY_THRESHOLD) {
+//            return Orientation.LANDSCAPE_LEFT;
+//        } else if (gravity.x < -GRAVITY_THRESHOLD) {
+//            return Orientation.LANDSCAPE_RIGHT;
+//        }
+
+        return Orientation.ERROR;
+    }
+
+    public Orientation getOrientation() {
+        return orientation;
+    }
+
+
+
+    //old use case
+    private void logGravityMagnitude(float magnitude) {
+        gravityMagnitudes[gravityMagnitudeIteration] = magnitude;
+        gravityMagnitudeIteration = (gravityMagnitudeIteration + 1) % gravityMagnitudes.length;
+    }
+
+    private void logGravityMagnitude(float[] gravity) {
+        gravityMagnitudes[gravityMagnitudeIteration] = getMagnitude(gravity);
+        gravityMagnitudeIteration = (gravityMagnitudeIteration + 1) % gravityMagnitudes.length;
+    }
+
+    private float getAverageGravityMagnitude() {
+        float sum = 0.0f;
+
+        for (float gravityMagnitude : gravityMagnitudes) {
+            sum += gravityMagnitude;
+        }
+
+        return sum/gravityMagnitudes.length;
+    }
+
+
+
+
+
+    // GAMMAL KOD
     // Code fetched GPT and modified to fit:
     // https://chatgpt.com/share/67955218-98f0-8004-92d3-ad468d1c833f
     private float[] getUpDirectionVector(float[] orientation) {
@@ -149,61 +228,13 @@ public class SensorInterpreter implements SensorEventListener {
         return sum;
     }
 
-
-
-
-    private Orientation interpretOrientation() {
-        // -1: flat upside down
-        // 0: standing
-        // 1: flat
-        float magnitude = getAverageGravityMagnitude();
-
-        if (magnitude < GRAVITY_LOWER_BOUNDS || magnitude > GRAVITY_UPPER_BOUNDS) {
-            return Orientation.SHAKE;
-        }
-
-
-        if (gravity.y > GRAVITY_THRESHOLD) {
-            return Orientation.PORTRAIT;
-        } else if (gravity.y < -GRAVITY_THRESHOLD) {
-            return Orientation.PORTRAIT_REVERSE;
-        } else if (gravity.z > GRAVITY_THRESHOLD) {
-            return Orientation.FLAT;
-        } else if (gravity.z < -GRAVITY_THRESHOLD) {
-            return Orientation.FLAT_REVERSE;
-        } else if (gravity.x > GRAVITY_THRESHOLD) {
-            return Orientation.LANDSCAPE_LEFT;
-        } else if (gravity.x < -GRAVITY_THRESHOLD) {
-            return Orientation.LANDSCAPE_RIGHT;
-        }
-
-        return Orientation.ERROR;
-    }
-
-    public Orientation getOrientation() {
-        return orientation;
-    }
-
-
-
-
-    private void logGravityMagnitude(float magnitude) {
-        gravityMagnitudes[gravityMagnitudeIteration] = magnitude;
-        gravityMagnitudeIteration = (gravityMagnitudeIteration + 1) % gravityMagnitudes.length;
-    }
-
-    private float getAverageGravityMagnitude() {
+    private float getMagnitude(float[] a) {
         float sum = 0.0f;
 
-        for (float gravityMagnitude : gravityMagnitudes) {
-            sum += gravityMagnitude;
+        for (int i = 0; i < a.length; i++) {
+            sum += a[i] * a[i];
         }
 
-        return sum/gravityMagnitudes.length;
-    }
-
-
-    public boolean validateOrientation(Orientation goal) {
-        return goal == orientation;
+        return (float) Math.sqrt(sum);
     }
 }

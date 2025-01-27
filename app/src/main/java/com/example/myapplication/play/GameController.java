@@ -7,7 +7,7 @@ import android.widget.TextView;
 
 public class GameController {
     public final SensorInterpreter sensorInterpreter = new SensorInterpreter();
-    private TextView output;
+    private final TextView output;
 
     public int queueSize = 4;
     public Orientation[] queue;

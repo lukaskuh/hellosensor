@@ -68,10 +68,8 @@ public class SensorInterpreter implements SensorEventListener {
 
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             //gravity.set(event.values);
-            for (int i = 0; i < event.values.length; i++) {
-                gravity[i] = event.values[i];
-            }
-            logGravityMagnitude(getMagnitude(gravity));
+            System.arraycopy(event.values, 0, gravity, 0, event.values.length);
+            logGravityMagnitude(gravity);
             calculateScoreAverage();
             orientation = interpretOrientation();
         }
@@ -109,7 +107,6 @@ public class SensorInterpreter implements SensorEventListener {
 
         Log.d("INFO", "GOAL: " + goal + ". DOT: " + score);
         updateScoreAverage(score);
-        return;
     }
 
     private void updateScoreAverage(float score) {
@@ -149,13 +146,6 @@ public class SensorInterpreter implements SensorEventListener {
         return orientation;
     }
 
-
-
-    //old use case
-    private void logGravityMagnitude(float magnitude) {
-        gravityMagnitudes[gravityMagnitudeIteration] = magnitude;
-        gravityMagnitudeIteration = (gravityMagnitudeIteration + 1) % gravityMagnitudes.length;
-    }
 
     private void logGravityMagnitude(float[] gravity) {
         gravityMagnitudes[gravityMagnitudeIteration] = getMagnitude(gravity);
@@ -227,8 +217,8 @@ public class SensorInterpreter implements SensorEventListener {
     private float getMagnitude(float[] a) {
         float sum = 0.0f;
 
-        for (int i = 0; i < a.length; i++) {
-            sum += a[i] * a[i];
+        for (float v : a) {
+            sum += v * v;
         }
 
         return (float) Math.sqrt(sum);

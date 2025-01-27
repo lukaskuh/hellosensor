@@ -1,6 +1,5 @@
 package com.example.myapplication;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -17,11 +16,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.myapplication.play.GameController;
+
 public class PlayActivity extends AppCompatActivity implements SensorEventListener {
 
-    private final GameController gameController = new GameController();
-
-    private Orientation[] moveQueue = {Orientation.LANDSCAPE_LEFT, Orientation.LANDSCAPE_RIGHT};
+    private GameController gameController;
+    private TextView logger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,9 +34,12 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
             return insets;
         });
 
+        gameController = new GameController(findViewById(R.id.logger));
+
         gameController.sensorInterpreter.setSensorManager(
                 (SensorManager) getSystemService(Context.SENSOR_SERVICE)
         );
+
     }
 
     @Override

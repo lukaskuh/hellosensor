@@ -1,4 +1,6 @@
-package com.example.myapplication;
+package com.example.myapplication.play;
+
+import java.util.Random;
 
 // Code inspired from:
 // https://chatgpt.com/share/67963115-acbc-8004-86db-734499784833
@@ -31,6 +33,17 @@ public enum Orientation {
         return vector[0] * other[0] / factor + vector[1] * other[1] / factor + vector[2] * other[2] / factor;
     }
 
+
+
+
+    private static final Random PRNG = new Random();
+
+    public static Orientation randomOrientation()  {
+        Orientation[] orientations = values();
+
+        // Minus one to exclude ERROR being returned.
+        return orientations[PRNG.nextInt(orientations.length - 1)];
+    }
 
 //    if (gravity.y > GRAVITY_THRESHOLD) {
 //        return Orientation.PORTRAIT;

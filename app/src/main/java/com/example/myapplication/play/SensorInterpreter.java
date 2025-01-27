@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.example.myapplication.play;
 
 import android.annotation.SuppressLint;
 import android.hardware.Sensor;
@@ -11,9 +11,6 @@ public class SensorInterpreter implements SensorEventListener {
     // Code fetched from:
     // https://developer.android.com/develop/sensors-and-location/sensors/sensors_position#sensors-pos-orient
     private SensorManager sensorManager;
-    private final float[] accelerometerReading = new float[3];
-
-    private final float[] UP = {0, 0, 1};
 
     //private final Vector3 gravity = new Vector3();
     private final float[] gravity = new float[3];
@@ -24,7 +21,6 @@ public class SensorInterpreter implements SensorEventListener {
     private static final float ERROR_MARGIN = 0.4f;
     private static final float GRAVITY_LOWER_BOUNDS = SensorManager.GRAVITY_EARTH - ERROR_MARGIN/2;
     private static final float GRAVITY_UPPER_BOUNDS = SensorManager.GRAVITY_EARTH + ERROR_MARGIN/2;
-    private static final float GRAVITY_THRESHOLD = SensorManager.GRAVITY_EARTH * 0.8f;
 
     private Orientation orientation;
     private Orientation goal;
@@ -117,7 +113,7 @@ public class SensorInterpreter implements SensorEventListener {
     }
 
     private void updateScoreAverage(float score) {
-        scoreAverage = (scoreAverage + score * weight) / (1 + score);
+        scoreAverage = (scoreAverage + score * weight) / (1 + weight);
         weight += 0.1f;
     }
 

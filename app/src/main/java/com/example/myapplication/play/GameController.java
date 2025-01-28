@@ -7,6 +7,8 @@ import android.widget.TextView;
 
 public class GameController {
     public final SensorInterpreter sensorInterpreter = new SensorInterpreter();
+    private final SoundManager soundManager = new SoundManager();
+
     private final TextView output;
 
     public int queueSize = 4;
@@ -19,7 +21,7 @@ public class GameController {
     // https://stackoverflow.com/questions/11434056/how-to-run-a-method-every-x-seconds
     final Handler handler = new Handler();
     final Runnable runnable = this::run;
-    final int delay = 5*1000; // 1000 milliseconds == 1 second
+    final int delay = 3*1000; // 1000 milliseconds == 1 second
 
 
     public GameController(TextView output) {
@@ -68,6 +70,7 @@ public class GameController {
 
 
         if (nextGoal()) {
+            soundManager.playBeep();
             gameLoop();
         } else {
             endGame();
@@ -117,7 +120,7 @@ public class GameController {
                     output.setText("Ready?");
                 } else {
                     output.setText(String.format("%s", millisUntilFinished/1000 + 1));
-
+                    soundManager.playBeep();
                 }
             }
 

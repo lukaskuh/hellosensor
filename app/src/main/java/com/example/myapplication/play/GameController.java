@@ -5,10 +5,15 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.example.myapplication.PlayActivity;
+
 public class GameController {
+    private final PlayActivity playActivity;
     public final SensorInterpreter sensorInterpreter = new SensorInterpreter();
     private final SoundManager soundManager = new SoundManager();
+    private final OrientationShower orientationShower;
 
+    private final TextView countdown;
     private final TextView output;
 
     public int queueSize = 4;
@@ -24,28 +29,42 @@ public class GameController {
     final int delay = 3*1000; // 1000 milliseconds == 1 second
 
 
-    public GameController(TextView output) {
+    public GameController(PlayActivity playActivity, TextView output, OrientationShower orientationShower, TextView countdown) {
+        this.playActivity = playActivity;
         this.output = output;
+        this.orientationShower = orientationShower;
+        this.countdown = countdown;
     }
 
+    public void onResume() {
+
+    }
+
+    public void onPause() {
+        //handler.removeCallbacks(runnable);
+    }
 
     public void start() {
         init();
-        Log.d("INFO", "start: Game started!");
+        Log.d("GAME", "start: Game started!");
 
+        playActivity.setView(GameState.INSTRUCTIONS);
+        countdown.setVisibility(TextView.VISIBLE);
+        orientationShower.setVisible(false);
         startCountdown(
-                () -> showSequence(
+            () -> {
+                countdown.setVisibility(TextView.GONE);
+                orientationShower.setVisible(true);
+                showSequence(
                         () -> {
+                            playActivity.setView(GameState.PLAY);
                             nextGoal();
                             gameLoop();
                         }
-                )
+                );
+
+            }
         );
-    }
-
-    private void gameLoop() {
-        handler.postDelayed( runnable, delay);
-
     }
 
 
@@ -63,10 +82,7 @@ public class GameController {
     private void run() {
         float avg = sensorInterpreter.getScoreAverage();
         scores[queueCounter - 1] = avg;
-        Log.d("INFO", "score: " + avg);
-
-
-
+        Log.d("GAME", "score: " + avg);
 
 
         if (nextGoal()) {
@@ -75,6 +91,11 @@ public class GameController {
         } else {
             endGame();
         }
+    }
+
+    private void gameLoop() {
+        handler.postDelayed( runnable, delay);
+
     }
 
     public void endGame() {
@@ -88,15 +109,10 @@ public class GameController {
 
         finalScore /= scores.length;
 
-        Log.d("INFO", "GAME FINISHED. FINAL SCORE: " + finalScore);
-    }
 
-    public void onResume() {
-
-    }
-
-    public void onPause() {
-        //handler.removeCallbacks(runnable);
+        playActivity.setView(GameState.POST);
+        Log.d("GAME", "GAME FINISHED. FINAL SCORE: " + finalScore);
+        output.setText("Great work! Your score: " + finalScore + ". Play again?");
     }
 
     private boolean nextGoal() {
@@ -104,11 +120,14 @@ public class GameController {
             return false;
         }
 
+        playActivity.setPage(queueCounter + 1, queueSize);
+
         sensorInterpreter.setGoalOrientation(queue[queueCounter]);
         queueCounter++;
 
         return true;
     }
+
 
     private void startCountdown(Runnable afterCountdown) {
         new CountDownTimer(5000, 1000) {
@@ -117,9 +136,9 @@ public class GameController {
                 Log.d("TAG", "onTick: ");
 
                 if (millisUntilFinished > 3000) {
-                    output.setText("Ready?");
+                    countdown.setText("Ready?");
                 } else {
-                    output.setText(String.format("%s", millisUntilFinished/1000 + 1));
+                    countdown.setText(String.format("%s", millisUntilFinished/1000 + 1));
                     soundManager.playBeep();
                 }
             }
@@ -133,24 +152,24 @@ public class GameController {
     }
 
     private void showSequence(Runnable afterCountdown) {
-        new CountDownTimer((long) delay * queueSize, delay) {
+        Log.d("GAME", "millisInFuture : " + delay * (queueSize) + ". Delay: " + delay);
+
+        //Fattar inte varför -2? Funkar iaf.
+        new CountDownTimer((long) delay * (queueSize), delay) {
             @Override
             public void onTick(long millisUntilFinished) {
-
-
-                output.setText(
-                        queue[queueCounter].toString()
-                );
-
+                Log.d("GAME",
+                        "QueueSize: " + queueSize + ". Counter: " + queueCounter
+                        );
+                orientationShower.setOrientation(queue[queueCounter]);
                 queueCounter++;
+                playActivity.setPage(queueCounter, queueSize);
             }
 
 
             @Override
             public void onFinish() {
-
                 queueCounter = 0;
-                output.setText("Go!");
                 afterCountdown.run();
             }
         }.start();

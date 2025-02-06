@@ -21,13 +21,14 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.myapplication.play.GameController;
 import com.example.myapplication.play.GameState;
 import com.example.myapplication.play.OrientationShower;
+import com.example.myapplication.play.ProgressDotsView;
+import com.example.myapplication.play.ViewManager;
 
 @RequiresApi(api = Build.VERSION_CODES.CUPCAKE)
 public class PlayActivity extends AppCompatActivity implements SensorEventListener {
-
+    public ViewManager viewManager;
     private GameController gameController;
     private TextView logger;
-    private GameState gameState = GameState.PRE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +41,12 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
             return insets;
         });
 
+        this.viewManager = new ViewManager(this);
+
         gameController = new GameController(
                 this,
                 findViewById(R.id.logger),
-                new OrientationShower(findViewById(R.id.PoseView)),
-                findViewById(R.id.countdown)
+                new OrientationShower(findViewById(R.id.PoseView))
         );
 
         gameController.sensorInterpreter.setSensorManager(
@@ -52,7 +54,7 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
         );
 
         // setView(GameState.PRE);
-        setView(GameState.DEBUG);
+        viewManager.setView(GameState.PRE);
     }
 
     @Override
@@ -84,66 +86,5 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
 
     public void startGame(View view) {
         gameController.start();
-    }
-
-    public void setView(GameState state) {
-        this.gameState = state;
-        switch (state) {
-            case PRE:
-                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
-                findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
-                findViewById(R.id.PlayLayout).setVisibility(View.GONE);
-                findViewById(R.id.ResultLayout).setVisibility(View.VISIBLE);
-                break;
-            case COUNTDOWN:
-                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
-                findViewById(R.id.PlayLayout).setVisibility(View.GONE);
-                findViewById(R.id.ResultLayout).setVisibility(View.GONE);
-                findViewById(R.id.InstructionsLayout).setVisibility(View.VISIBLE);
-                findViewById(R.id.countdown).setVisibility(View.VISIBLE);
-                findViewById(R.id.PoseView).setVisibility(View.GONE);
-                findViewById(R.id.page_indicator).setVisibility(View.GONE);
-            case INSTRUCTIONS:
-                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
-                findViewById(R.id.PlayLayout).setVisibility(View.GONE);
-                findViewById(R.id.ResultLayout).setVisibility(View.GONE);
-                findViewById(R.id.InstructionsLayout).setVisibility(View.VISIBLE);
-                findViewById(R.id.countdown).setVisibility(View.GONE);
-                findViewById(R.id.PoseView).setVisibility(View.VISIBLE);
-                findViewById(R.id.page_indicator).setVisibility(View.VISIBLE);
-                break;
-            case PLAY:
-                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
-                findViewById(R.id.ResultLayout).setVisibility(View.GONE);
-                findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
-                findViewById(R.id.PlayLayout).setVisibility(View.VISIBLE);
-                break;
-            case POST:
-                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
-                findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
-                findViewById(R.id.PlayLayout).setVisibility(View.GONE);
-                findViewById(R.id.ResultLayout).setVisibility(View.VISIBLE);
-                break;
-            case DEBUG:
-                findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
-                findViewById(R.id.PlayLayout).setVisibility(View.GONE);
-                findViewById(R.id.ResultLayout).setVisibility(View.GONE);
-                findViewById(R.id.DebugLayout).setVisibility(View.VISIBLE);
-                break;
-        }
-    }
-
-    public void setPage(int i, int max) {
-        if (gameState == GameState.INSTRUCTIONS) {
-            ((TextView) findViewById(R.id.page_indicator)).setText(
-                    String.format("%d/%d", i, max)
-            );
-
-        } else if (gameState == GameState.PLAY) {
-            ((TextView) findViewById(R.id.play_output)).setText(
-                    String.format("Go!\n%d/%d", i, max)
-            );
-        }
-
     }
 }

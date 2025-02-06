@@ -14,85 +14,95 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/CountdownLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
-                android:id="@+id/countdown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TextView"
-                tools:layout_editor_absoluteX="194dp"
-                tools:layout_editor_absoluteY="442dp" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/DebugLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="#FAA0A0"
             android:visibility="gone">
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/PlayLayout"
+            android:id="@+id/GameLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/play_output"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/InstructionsLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:background="@color/md_theme_inversePrimary"
             android:visibility="visible">
 
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/CountdownLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/page_indicator"
+                    android:id="@+id/countdown"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="TextView"
-                    android:visibility="gone"
+                    android:text="@string/placeholder_zero_with_decimals"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.498"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/PoseView" />
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <ImageView
-                    android:id="@+id/PoseView"
-                    android:layout_width="212dp"
-                    android:layout_height="294dp"
-                    android:contentDescription="Goal orientation"
-                    android:visibility="gone"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/PlayLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.example.myapplication.play.ProgressDotsView
+                    android:id="@+id/playProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/InstructionsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <com.example.myapplication.play.ProgressDotsView
+                    android:id="@+id/instructionsProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:layout_constraintBottom_toTopOf="@+id/backgroundCircle"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
                 <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="296dp"
-                    android:layout_height="238dp"
+                    android:id="@+id/backgroundCircle"
+                    android:layout_width="360dp"
+                    android:layout_height="360dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/circle_background" />
+
+                <ImageView
+                    android:id="@+id/PoseView"
+                    android:layout_width="245dp"
+                    android:layout_height="274dp"
+                    android:contentDescription="Goal orientation"
+                    android:visibility="visible"
+                    app:layout_constraintBottom_toBottomOf="@+id/backgroundCircle"
+                    app:layout_constraintEnd_toEndOf="@+id/backgroundCircle"
+                    app:layout_constraintStart_toStartOf="@+id/backgroundCircle"
+                    app:layout_constraintTop_toTopOf="@+id/backgroundCircle"
+                    app:srcCompat="@drawable/landscape_left" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

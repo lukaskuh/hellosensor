@@ -25,6 +25,7 @@ public class SensorInterpreter implements SensorEventListener {
     private Orientation orientation;
     private Orientation goal;
     private float scoreAverage = 0.0f;
+    private int debugCounter = 0;
     private float weight = 1.0f;
 
 
@@ -85,6 +86,9 @@ public class SensorInterpreter implements SensorEventListener {
     }
 
     public void setGoalOrientation(Orientation goal) {
+        //DEBUG
+        Log.d("GAME", String.format("Average: %.2f. Counter: %d", scoreAverage, debugCounter));
+
         this.goal = goal;
         this.weight = 1;
         this.scoreAverage = 0.0f;
@@ -97,7 +101,7 @@ public class SensorInterpreter implements SensorEventListener {
 
         float magnitude = getAverageGravityMagnitude();
         if (goal == Orientation.SHAKE && (magnitude < GRAVITY_LOWER_BOUNDS || magnitude > GRAVITY_UPPER_BOUNDS)) {
-            Log.d("INFO", "shaking");
+            Log.d("GAME", "shaking");
             updateScoreAverage(1.0f);
             return;
         }
@@ -105,13 +109,14 @@ public class SensorInterpreter implements SensorEventListener {
         //CLAMP!
         float score = Math.min(Math.max(0, goal.dot(gravity, SensorManager.GRAVITY_EARTH)), 1);
 
-        Log.d("INFO", "GOAL: " + goal + ". DOT: " + score);
+        Log.d("GAME", "GOAL: " + goal + ". DOT: " + score);
         updateScoreAverage(score);
     }
 
     private void updateScoreAverage(float score) {
         scoreAverage = (scoreAverage + score * weight) / (1 + weight);
         weight += 0.1f;
+        debugCounter++;
     }
 
     private Orientation interpretOrientation() {

@@ -18,7 +18,6 @@ public class GameController {
     private final VibrationManager vibrationManager;
     private final OrientationShower orientationShower;
 
-    private final TextView countdown;
     private final TextView output;
 
     public int queueSize = 4;
@@ -34,11 +33,10 @@ public class GameController {
     final int delay = 3*1000; // 1000 milliseconds == 1 second
 
 
-    public GameController(PlayActivity playActivity, TextView output, OrientationShower orientationShower, TextView countdown) {
+    public GameController(PlayActivity playActivity, TextView output, OrientationShower orientationShower) {
         this.playActivity = playActivity;
         this.output = output;
         this.orientationShower = orientationShower;
-        this.countdown = countdown;
         this.vibrationManager = new VibrationManager(playActivity);
     }
 
@@ -54,23 +52,19 @@ public class GameController {
         init();
         Log.d("GAME", "start: Game started!");
 
-        playActivity.setView(GameState.INSTRUCTIONS);
-        countdown.setVisibility(TextView.VISIBLE);
-        orientationShower.setVisible(false);
+        playActivity.viewManager.setView(GameState.COUNTDOWN);
 
         startCountdown()
                 .thenRun(() -> {
-                    countdown.setVisibility(TextView.GONE);
-                    orientationShower.setVisible(true);
+                    playActivity.viewManager.setView(GameState.INSTRUCTIONS);
                 })
                 .thenCompose(v -> showSequence())
                 .thenRun(() -> {
-                    countdown.setVisibility(TextView.VISIBLE);
-                    orientationShower.setVisible(false);
+                    playActivity.viewManager.setView(GameState.COUNTDOWN);
                 })
                 .thenCompose(v -> startCountdown(true))
                 .thenRun(() -> {
-                    playActivity.setView(GameState.PLAY);
+                    playActivity.viewManager.setView(GameState.PLAY);
                     soundManager.playBlastOff();
                     nextGoal();
                     gameLoop();
@@ -82,6 +76,8 @@ public class GameController {
         queueCounter = 0;
         queue = new Orientation[queueSize];
         scores = new float[queueSize];
+
+        playActivity.viewManager.setOrientationAmount(queueSize);
 
         for (int i = 0; i < queueSize; i++) {
             queue[i] = Orientation.randomOrientation();
@@ -120,7 +116,7 @@ public class GameController {
         finalScore /= scores.length;
 
         soundManager.playFinish();
-        playActivity.setView(GameState.POST);
+        playActivity.viewManager.setView(GameState.POST);
         Log.d("GAME", "GAME FINISHED. FINAL SCORE: " + finalScore);
         output.setText("Great work! Your score: " + finalScore + ". Play again?");
     }
@@ -130,7 +126,7 @@ public class GameController {
             return false;
         }
 
-        playActivity.setPage(queueCounter + 1, queueSize);
+        playActivity.viewManager.setOrientationProgress(queueCounter + 1);
 
         sensorInterpreter.setGoalOrientation(queue[queueCounter]);
         queueCounter++;
@@ -151,9 +147,9 @@ public class GameController {
                 Log.d("TAG", "onTick: ");
 
                 if (millisUntilFinished > 3000) {
-                    countdown.setText("Ready?");
+                    playActivity.viewManager.setCountdown("Ready?");
                 } else {
-                    countdown.setText(String.format("%s", millisUntilFinished/1000 + 1));
+                    playActivity.viewManager.setCountdown(String.format("%s", millisUntilFinished/1000 + 1));
                     soundManager.playBeepLow();
                     vibrationManager.tick();
                 }
@@ -183,7 +179,7 @@ public class GameController {
                         );
                 orientationShower.setOrientation(queue[queueCounter]);
                 queueCounter++;
-                playActivity.setPage(queueCounter, queueSize);
+                playActivity.viewManager.setOrientationProgress(queueCounter);
             }
 
 

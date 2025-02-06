@@ -51,9 +51,8 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
                 (SensorManager) getSystemService(Context.SENSOR_SERVICE)
         );
 
-
-        gameController.start();
-
+        // setView(GameState.PRE);
+        setView(GameState.DEBUG);
     }
 
     @Override
@@ -91,11 +90,13 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
         this.gameState = state;
         switch (state) {
             case PRE:
+                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
                 findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
                 findViewById(R.id.PlayLayout).setVisibility(View.GONE);
                 findViewById(R.id.ResultLayout).setVisibility(View.VISIBLE);
                 break;
             case COUNTDOWN:
+                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
                 findViewById(R.id.PlayLayout).setVisibility(View.GONE);
                 findViewById(R.id.ResultLayout).setVisibility(View.GONE);
                 findViewById(R.id.InstructionsLayout).setVisibility(View.VISIBLE);
@@ -103,6 +104,7 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
                 findViewById(R.id.PoseView).setVisibility(View.GONE);
                 findViewById(R.id.page_indicator).setVisibility(View.GONE);
             case INSTRUCTIONS:
+                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
                 findViewById(R.id.PlayLayout).setVisibility(View.GONE);
                 findViewById(R.id.ResultLayout).setVisibility(View.GONE);
                 findViewById(R.id.InstructionsLayout).setVisibility(View.VISIBLE);
@@ -111,14 +113,22 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
                 findViewById(R.id.page_indicator).setVisibility(View.VISIBLE);
                 break;
             case PLAY:
+                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
                 findViewById(R.id.ResultLayout).setVisibility(View.GONE);
                 findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
                 findViewById(R.id.PlayLayout).setVisibility(View.VISIBLE);
                 break;
             case POST:
+                findViewById(R.id.DebugLayout).setVisibility(View.GONE);
                 findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
                 findViewById(R.id.PlayLayout).setVisibility(View.GONE);
                 findViewById(R.id.ResultLayout).setVisibility(View.VISIBLE);
+                break;
+            case DEBUG:
+                findViewById(R.id.InstructionsLayout).setVisibility(View.GONE);
+                findViewById(R.id.PlayLayout).setVisibility(View.GONE);
+                findViewById(R.id.ResultLayout).setVisibility(View.GONE);
+                findViewById(R.id.DebugLayout).setVisibility(View.VISIBLE);
                 break;
         }
     }

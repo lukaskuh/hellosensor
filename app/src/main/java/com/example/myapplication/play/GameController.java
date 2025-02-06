@@ -1,5 +1,6 @@
 package com.example.myapplication.play;
 
+import android.content.Context;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
@@ -7,10 +8,14 @@ import android.widget.TextView;
 
 import com.example.myapplication.PlayActivity;
 
+import java.util.concurrent.CompletableFuture;
+
 public class GameController {
+    // CompletableFuture från GPT
     private final PlayActivity playActivity;
     public final SensorInterpreter sensorInterpreter = new SensorInterpreter();
     private final SoundManager soundManager = new SoundManager();
+    private final VibrationManager vibrationManager;
     private final OrientationShower orientationShower;
 
     private final TextView countdown;
@@ -34,6 +39,7 @@ public class GameController {
         this.output = output;
         this.orientationShower = orientationShower;
         this.countdown = countdown;
+        this.vibrationManager = new VibrationManager(playActivity);
     }
 
     public void onResume() {
@@ -51,20 +57,24 @@ public class GameController {
         playActivity.setView(GameState.INSTRUCTIONS);
         countdown.setVisibility(TextView.VISIBLE);
         orientationShower.setVisible(false);
-        startCountdown(
-            () -> {
-                countdown.setVisibility(TextView.GONE);
-                orientationShower.setVisible(true);
-                showSequence(
-                        () -> {
-                            playActivity.setView(GameState.PLAY);
-                            nextGoal();
-                            gameLoop();
-                        }
-                );
 
-            }
-        );
+        startCountdown()
+                .thenRun(() -> {
+                    countdown.setVisibility(TextView.GONE);
+                    orientationShower.setVisible(true);
+                })
+                .thenCompose(v -> showSequence())
+                .thenRun(() -> {
+                    countdown.setVisibility(TextView.VISIBLE);
+                    orientationShower.setVisible(false);
+                })
+                .thenCompose(v -> startCountdown(true))
+                .thenRun(() -> {
+                    playActivity.setView(GameState.PLAY);
+                    soundManager.playBlastOff();
+                    nextGoal();
+                    gameLoop();
+                });
     }
 
 
@@ -86,7 +96,7 @@ public class GameController {
 
 
         if (nextGoal()) {
-            soundManager.playBeep();
+            soundManager.playBeepHigh();
             gameLoop();
         } else {
             endGame();
@@ -94,7 +104,7 @@ public class GameController {
     }
 
     private void gameLoop() {
-        handler.postDelayed( runnable, delay);
+        handler.postDelayed(runnable, delay);
 
     }
 
@@ -109,7 +119,7 @@ public class GameController {
 
         finalScore /= scores.length;
 
-
+        soundManager.playFinish();
         playActivity.setView(GameState.POST);
         Log.d("GAME", "GAME FINISHED. FINAL SCORE: " + finalScore);
         output.setText("Great work! Your score: " + finalScore + ". Play again?");
@@ -128,9 +138,14 @@ public class GameController {
         return true;
     }
 
+    private CompletableFuture<Void> startCountdown() {
+        return startCountdown(false);
+    }
+    private CompletableFuture<Void> startCountdown(boolean quick) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        long millisInFuture = quick ? 3000 : 5000;
 
-    private void startCountdown(Runnable afterCountdown) {
-        new CountDownTimer(5000, 1000) {
+        new CountDownTimer(millisInFuture, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 Log.d("TAG", "onTick: ");
@@ -139,25 +154,30 @@ public class GameController {
                     countdown.setText("Ready?");
                 } else {
                     countdown.setText(String.format("%s", millisUntilFinished/1000 + 1));
-                    soundManager.playBeep();
+                    soundManager.playBeepLow();
+                    vibrationManager.tick();
                 }
             }
 
             @Override
             public void onFinish() {
-                afterCountdown.run();
+                future.complete(null);
             }
 
         }.start();
+
+        return future;
     }
 
-    private void showSequence(Runnable afterCountdown) {
+    private CompletableFuture<Void> showSequence() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
         Log.d("GAME", "millisInFuture : " + delay * (queueSize) + ". Delay: " + delay);
 
         //Fattar inte varför -2? Funkar iaf.
         new CountDownTimer((long) delay * (queueSize), delay) {
             @Override
             public void onTick(long millisUntilFinished) {
+                soundManager.playBeepHigh();
                 Log.d("GAME",
                         "QueueSize: " + queueSize + ". Counter: " + queueCounter
                         );
@@ -170,9 +190,11 @@ public class GameController {
             @Override
             public void onFinish() {
                 queueCounter = 0;
-                afterCountdown.run();
+                future.complete(null);
             }
         }.start();
+
+        return future;
     }
 
 }

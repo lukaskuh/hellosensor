@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ProgressDotsView">
+        <attr name="totalDots" format="integer" />
+        <attr name="dotSize" format="dimension" />
+        <attr name="dotSpacing" format="dimension" />
+    </declare-styleable>
+</resources>

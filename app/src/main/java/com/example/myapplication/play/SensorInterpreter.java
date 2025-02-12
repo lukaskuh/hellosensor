@@ -27,6 +27,7 @@ public class SensorInterpreter implements SensorEventListener {
     private float scoreAverage = 0.0f;
     private int debugCounter = 0;
     private float weight = 1.0f;
+    private boolean reversed = false;
 
 
 
@@ -85,11 +86,11 @@ public class SensorInterpreter implements SensorEventListener {
         return scoreAverage;
     }
 
-    public void setGoalOrientation(Orientation goal) {
+    public void setGoalOrientation(Orientation goal, boolean reversed) {
         //DEBUG
         Log.d("GAME", String.format("Average: %.2f. Counter: %d", scoreAverage, debugCounter));
-
         this.goal = goal;
+        this.reversed = reversed;
         this.weight = 1;
         this.scoreAverage = 0.0f;
     }
@@ -97,20 +98,24 @@ public class SensorInterpreter implements SensorEventListener {
 
 
     private void calculateScoreAverage() {
-
+        float score = 0.0f;
 
         float magnitude = getAverageGravityMagnitude();
         if (goal == Orientation.SHAKE && (magnitude < GRAVITY_LOWER_BOUNDS || magnitude > GRAVITY_UPPER_BOUNDS)) {
             Log.d("GAME", "shaking");
+            score = 1.0f;
             updateScoreAverage(1.0f);
             return;
+        } else {
+            Log.d("GAME", "GOAL: " + goal + ". DOT: " + score);
+            score = Math.min(Math.max(0, goal.dot(gravity, SensorManager.GRAVITY_EARTH)), 1);
         }
 
-        //CLAMP!
-        float score = Math.min(Math.max(0, goal.dot(gravity, SensorManager.GRAVITY_EARTH)), 1);
 
-        Log.d("GAME", "GOAL: " + goal + ". DOT: " + score);
-        updateScoreAverage(score);
+        score = reversed ? 2.0f - score : score;
+
+        float clampedScore = Math.min(Math.max(score, 0), 1);
+        updateScoreAverage(clampedScore);
     }
 
     private void updateScoreAverage(float score) {

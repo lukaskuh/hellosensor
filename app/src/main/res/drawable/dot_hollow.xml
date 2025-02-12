@@ -8,9 +8,9 @@
 
     <!-- Border stroke to create the outline -->
     <stroke
-        android:width="2dp"
+        android:width="4dp"
         android:color="@color/md_theme_onPrimary"/>
     <size
-        android:width="16dp"
-        android:height="16dp"/>
+        android:width="32dp"
+        android:height="32dp"/>
 </shape>

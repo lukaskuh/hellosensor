@@ -23,4 +23,12 @@ public class SoundManager {
         toneGenerator.startTone(ToneGenerator.TONE_DTMF_A, 600);
     }
 
+    public void playPositiveFeedback() {
+        toneGenerator.startTone(ToneGenerator.TONE_DTMF_A, 200);
+    }
+
+    public void playNegativeFeedback() {
+        toneGenerator.startTone(ToneGenerator.TONE_DTMF_C, 200);
+    }
+
 }

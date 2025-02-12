@@ -6,7 +6,9 @@ public enum GameState {
     PRE(R.id.ResultLayout),
     COUNTDOWN(R.id.CountdownLayout),
     INSTRUCTIONS(R.id.InstructionsLayout),
-    PLAY(R.id.PlayLayout),
+    PLAY(R.id.nextLevelButton),
+    FEEDBACK(R.id.FeedbackLayout),
+    BETWEEN(R.id.BetweenLayout),
     POST(R.id.ResultLayout),
     DEBUG(R.id.DebugLayout);
 

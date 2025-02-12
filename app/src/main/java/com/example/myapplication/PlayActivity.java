@@ -5,14 +5,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -21,10 +19,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.myapplication.play.GameController;
 import com.example.myapplication.play.GameState;
 import com.example.myapplication.play.OrientationShower;
-import com.example.myapplication.play.ProgressDotsView;
 import com.example.myapplication.play.ViewManager;
 
-@RequiresApi(api = Build.VERSION_CODES.CUPCAKE)
 public class PlayActivity extends AppCompatActivity implements SensorEventListener {
     public ViewManager viewManager;
     private GameController gameController;
@@ -45,8 +41,7 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
 
         gameController = new GameController(
                 this,
-                findViewById(R.id.logger),
-                new OrientationShower(findViewById(R.id.PoseView))
+                findViewById(R.id.logger)
         );
 
         gameController.sensorInterpreter.setSensorManager(

@@ -8,5 +8,20 @@
     <string name="z_label">Z:</string>
     <string name="placeholder_zero_with_decimals">0.00</string>
     <string name="accelerometer_statistics">Accelerometer statistics</string>
-    <string name="seconds_remaining">"seconds remaining: "</string>
+    <string name="seconds_remaining">seconds remaining: </string>
+    <string name="feedback_good">Great!</string>
+    <string name="feedback_bad">Wrong!</string>
+    <string name="rating_label">Your rating:</string>
+    <string name="streak_label">Longest streak:</string>
+    <string name="streak_placeholder">4</string>
+    <string name="rating_placeholder">A+</string>
+    <string name="quit_level_text">Give Up</string>
+    <string name="next_level_text">Next Level</string>
+    <string name="round_label">Round:</string>
+    <string name="round_placeholder">3</string>
+    <string name="difficulty_placeholder">EASY</string>
+    <string name="between_prompt_positive">Nice work!</string>
+    <string name="between_prompt_negative">Better luck next time!</string>
+    <string name="memorize_prompt">Memorize the following sequence!</string>
+    <string name="play_prompt">Get ready to play!</string>
 </resources>

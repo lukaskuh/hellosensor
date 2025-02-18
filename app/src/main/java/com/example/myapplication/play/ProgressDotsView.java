@@ -15,7 +15,7 @@ public class ProgressDotsView extends LinearLayout {
     // Code completely from:
     // https://chatgpt.com/share/67a4e5f9-88a8-8004-9b86-664586e44a13
     private int totalDots = 5; // Default count
-    private int currentProgress = 0; // Default progress
+    private int currentProgress = 1; // Default progress
     private int dotSize = 20; // Default size in pixels
     private int dotSpacing = 10; // Default spacing in pixels
 

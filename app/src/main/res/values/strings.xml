@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">My Application</string>
-    <string name="about_button">About</string>
+    <string name="about_button"><u>About &amp; How to play</u></string>
     <string name="play_button">Play</string>
     <string name="log_button">Log</string>
     <string name="x_label">X:</string>
@@ -24,4 +24,19 @@
     <string name="between_prompt_negative">Better luck next time!</string>
     <string name="memorize_prompt">Memorize the following sequence!</string>
     <string name="play_prompt">Get ready to play!</string>
+    <string name="start_game">Start game</string>
+    <string name="restart_game">Play again</string>
+    <string name="quit_game">Quit</string>
+    <string name="game_over">Game over!</string>
+    <string name="about">About</string>
+    <string name="how_to_play">How to play</string>
+    <string name="about_text">This game was made by Lukas Kuhlin for the course Advanced Interaction Design (MAMN01)</string>
+    <string name="game_instructions_1">This game is a combination of memory and Simon Says! The game consists of multiple rounds where you need to memorize a shown sequence of phone poses which you will mimic. Each round consists of two phases: the instructions phase and the game phase.</string>
+    <string name="simon_says">Simon says! Tilt phone left</string>
+    <string name="simon_says_not">Simon says not! Tilt phone right</string>
+    <string name="instructions_phase">Instructions phase</string>
+    <string name="game_phase">Game phase</string>
+    <string name="instructions_phase_instructions_1">The instructions phase will show a sequence of phone poses, memorize these. If the background is green you need to mimic it during the game phase. If the background is red during the pose, you need to do the opposite of the pose, i.e. tilt phone right if the screen shows a left pose or hold phone still if the screen tells you to shake!</string>
+    <string name="game_phase_instructions_1">During the game phase you need to act out the sequence you have memorized. For each phone pose, you need to act out the pose and hold it for half a second in the specified amount of time. When the difficulty increases, the time to act out a pose shortens and the amount of poses to memorize increases.</string>
+    <string name="game_phase_instructions_2">You have three lives in total and if your round rating is too low, you lose a live. When all lives are lost you lose the game. Try to get as far as possible! Good luck!</string>
 </resources>

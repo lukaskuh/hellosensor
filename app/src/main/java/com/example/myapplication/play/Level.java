@@ -23,17 +23,23 @@ public class Level {
     // Code from:
     // https://stackoverflow.com/questions/11434056/how-to-run-a-method-every-x-seconds
     final Handler handler = new Handler();
-    final Runnable runnable = this::run;
-    final int delay; // 1000 milliseconds == 1 second
+    final int instructionsStepTime;
+    final int playStepTime;
     final float reversedChance;
+
+
+    private final PlayCountdown playCountdown;
 
     private int currentStreak = 0;
 
-    public Level(GameController gameController, int stepsAmount, int stepsDelay, float reversedChance) {
+    public Level(GameController gameController, int stepsAmount, int instructionsStepTime, int playStepTime, float reversedChance) {
         this.gameController = gameController;
         this.queueSize = stepsAmount;
-        this.delay = stepsDelay;
+        this.instructionsStepTime = instructionsStepTime;
+        this.playStepTime = playStepTime;
         this.reversedChance = reversedChance;
+
+        this.playCountdown = new PlayCountdown(playStepTime, 100);
     }
 
     public void start() {
@@ -49,15 +55,15 @@ public class Level {
                 })
                 .thenCompose(v -> showSequence())
                 .thenRun(() -> {
+                    gameController.soundManager.blastOffShort();
                     gameController.playActivity.viewManager.setView(GameState.COUNTDOWN);
                     gameController.playActivity.viewManager.setCountdownMode(GameState.PLAY);
                 })
                 .thenCompose(v -> startCountdown(true))
                 .thenRun(() -> {
+                    gameController.soundManager.blastOff();
                     gameController.playActivity.viewManager.setView(GameState.PLAY);
-                    gameController.soundManager.playBlastOff();
                     nextGoal();
-                    gameLoop();
                 });
     }
 
@@ -70,39 +76,20 @@ public class Level {
 
         gameController.playActivity.viewManager.setOrientationAmount(queueSize);
 
-        for (int i = 0; i < queueSize; i++) {
-            queue[i] = Orientation.randomOrientation();
+        queue[0] = Orientation.randomOrientation();
+        reversed[0] = PRNG.nextFloat() < reversedChance;
+
+        for (int i = 1; i < queueSize; i++) {
             reversed[i] = PRNG.nextFloat() < reversedChance;
+
+            do {
+                queue[i] = Orientation.randomOrientation();
+            } while (queue[i] == queue[i-1]);
         }
 
     }
 
-    private void run() {
-        float avg = gameController.sensorInterpreter.getScoreAverage();
-        scores[queueCounter - 1] = avg;
-        Log.d("GAME", "score: " + avg);
 
-
-        showFeedback(avg)
-                .thenRun(() -> {
-                    if (nextGoal()) {
-                        if (avg > 0.6f) {
-                            currentStreak++;
-                        } else {
-                            currentStreak = 0;
-                        }
-
-                        gameLoop();
-                    } else {
-                        endLevel();
-                    }
-                });
-    }
-
-    private void gameLoop() {
-        handler.postDelayed(runnable, delay);
-
-    }
 
     // https://chatgpt.com/share/67a53d8d-6e40-8004-9e96-fc0fbd93ab76
     private CompletableFuture<Void> showFeedback(float score) {
@@ -113,23 +100,21 @@ public class Level {
 
         if (score > 0.6f) {
             gameController.playActivity.viewManager.feedbackPositive();
-            gameController.soundManager.playPositiveFeedback();
+            gameController.vibrationManager.correct();
+            gameController.soundManager.correct();
         } else {
             gameController.playActivity.viewManager.feedbackNegative();
-            gameController.soundManager.playNegativeFeedback();
+            gameController.vibrationManager.wrong();
+            gameController.soundManager.wrong();
         }
 
-        handler.postDelayed(() -> {
-            gameController.playActivity.viewManager.setView(GameState.PLAY);
-            gameController.playActivity.viewManager.setBackgroundTinted();
-            future.complete(null);
-        }, 500);
+        handler.postDelayed(() -> future.complete(null), 500);
 
         return future;
     }
 
     public void endLevel() {
-        gameController.sensorInterpreter.setGoalOrientation(null, false);
+        gameController.sensorInterpreter.setGoalOrientation(null, false, () -> {});
 
         float finalScore = 0.0f;
 
@@ -139,23 +124,56 @@ public class Level {
 
         finalScore /= scores.length;
 
-        gameController.soundManager.playFinish();
+        gameController.soundManager.finish();
 
         gameController.levelEnded(Rating.rateScore(finalScore), currentStreak);
         Log.d("GAME", "LEVEL FINISHED. FINAL SCORE: " + finalScore);
     }
 
-    private boolean nextGoal() {
+    private void nextGoal() {
+        gameController.playActivity.viewManager.setView(GameState.PLAY);
+        gameController.playActivity.viewManager.setBackgroundTinted();
+
         if (queueCounter >= queue.length) {
-            return false;
+            endLevel();
         }
 
         gameController.playActivity.viewManager.setOrientationProgress(queueCounter + 1);
 
-        gameController.sensorInterpreter.setGoalOrientation(queue[queueCounter], reversed[queueCounter]);
+        gameController.sensorInterpreter.setGoalOrientation(queue[queueCounter], reversed[queueCounter], this::correct);
         queueCounter++;
 
-        return true;
+        playCountdown.start();
+    }
+
+    private void postGoal() {
+        float avg = gameController.sensorInterpreter.getScoreAverage();
+        scores[queueCounter - 1] = avg;
+
+
+        showFeedback(avg)
+                .thenRun(this::nextGoal);
+
+    }
+
+    public void correct() {
+        float avg = gameController.sensorInterpreter.getScoreAverage();
+
+        if (avg > 0.6f) {
+            currentStreak++;
+        } else {
+            currentStreak = 0;
+        }
+
+        Log.d("GAME", "correct: !");
+        playCountdown.cancel();
+        postGoal();
+    }
+
+    private void fail() {
+        gameController.sensorInterpreter.setGoalOrientation(null, false, () -> {});
+        Log.d("GAME", "fail: ");
+        postGoal();
     }
 
     private CompletableFuture<Void> startCountdown() {
@@ -181,7 +199,7 @@ public class Level {
                     
                 } else {
                     gameController.playActivity.viewManager.setCountdown(String.format("%s", millisUntilFinished/1000));
-                    gameController.soundManager.playBeepLow();
+                    gameController.soundManager.tick();
                     gameController.vibrationManager.tick();
                 }
             }
@@ -189,6 +207,8 @@ public class Level {
             @Override
             public void onFinish() {
                 future.complete(null);
+                gameController.vibrationManager.correct();
+                gameController.soundManager.correct();
             }
 
         }.start();
@@ -198,12 +218,13 @@ public class Level {
 
     private CompletableFuture<Void> showSequence() {
         CompletableFuture<Void> future = new CompletableFuture<>();
-        Log.d("GAME", "millisInFuture : " + delay * (queueSize) + ". Delay: " + delay);
+        Log.d("GAME", "millisInFuture : " + instructionsStepTime * (queueSize) + ". Delay: " + instructionsStepTime);
 
-        new CountDownTimer((long) delay * (queueSize), delay) {
+        new CountDownTimer((long) instructionsStepTime * (queueSize), instructionsStepTime) {
             @Override
             public void onTick(long millisUntilFinished) {
-                gameController.soundManager.playBeepHigh();
+                gameController.soundManager.correct();
+                gameController.vibrationManager.correct();
                 Log.d("GAME",
                         "QueueSize: " + queueSize + ". Counter: " + queueCounter
                 );
@@ -221,5 +242,31 @@ public class Level {
         }.start();
 
         return future;
+    }
+
+
+    private class PlayCountdown extends CountDownTimer {
+
+        /**
+         * @param millisInFuture    The number of millis in the future from the call
+         *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
+         *                          is called.
+         * @param countDownInterval The interval along the way to receive
+         *                          {@link #onTick(long)} callbacks.
+         */
+        public PlayCountdown(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            gameController.playActivity.viewManager.setPlayRemainingCountdown(millisUntilFinished/1000f);
+        }
+
+        @Override
+        public void onFinish() {
+            Log.d("GAME", "ON FINISH!!!!!!!!!!!!!!!!!!!!");
+            fail();
+        }
     }
 }

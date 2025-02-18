@@ -3,10 +3,10 @@ package com.example.myapplication.play;
 import com.example.myapplication.R;
 
 public enum GameState {
-    PRE(R.id.ResultLayout),
+    PRE(R.id.PreLayout),
     COUNTDOWN(R.id.CountdownLayout),
     INSTRUCTIONS(R.id.InstructionsLayout),
-    PLAY(R.id.nextLevelButton),
+    PLAY(R.id.PlayLayout),
     FEEDBACK(R.id.FeedbackLayout),
     BETWEEN(R.id.BetweenLayout),
     POST(R.id.ResultLayout),

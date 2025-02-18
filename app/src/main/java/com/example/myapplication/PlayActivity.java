@@ -18,13 +18,11 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.myapplication.play.GameController;
 import com.example.myapplication.play.GameState;
-import com.example.myapplication.play.OrientationShower;
 import com.example.myapplication.play.ViewManager;
 
 public class PlayActivity extends AppCompatActivity implements SensorEventListener {
     public ViewManager viewManager;
     private GameController gameController;
-    private TextView logger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,16 +37,12 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
 
         this.viewManager = new ViewManager(this);
 
-        gameController = new GameController(
-                this,
-                findViewById(R.id.logger)
-        );
+        gameController = new GameController(this);
 
         gameController.sensorInterpreter.setSensorManager(
                 (SensorManager) getSystemService(Context.SENSOR_SERVICE)
         );
 
-        // setView(GameState.PRE);
         viewManager.setView(GameState.PRE);
     }
 
@@ -81,5 +75,17 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
 
     public void startGame(View view) {
         gameController.start();
+    }
+
+    public void nextLevel(View view) {
+        gameController.nextLevel();
+    }
+
+    public void gameOver(View view) {
+        gameController.gameOver();
+    }
+
+    public void quit(View view) {
+        finish();
     }
 }

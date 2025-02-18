@@ -9,34 +9,45 @@ import com.example.myapplication.PlayActivity;
 public class GameController {
     public final PlayActivity playActivity;
     public final SensorInterpreter sensorInterpreter = new SensorInterpreter();
-    public final SoundManager soundManager = new SoundManager();
+    public final SoundManager soundManager;
     public final VibrationManager vibrationManager;
 
     private Level currentLevel;
+    private int livesLeft = 3;
 
     private int longestStreak;
-
-    public final TextView output;
 
     private int roundCount = 0;
     private Difficulty currentDifficulty = Difficulty.EASY;
 
-    private int nextDifficultyIncrement = 1;
-    private float stepsDelay = 3 * 1000;
-    private int stepsAmount = 4;
-    private float reversedChance = 0.0f;
+
+    private static final int NEXT_DIFFICULTY_INCREMENT = 1;
+    private static final int INSTRUCTIONS_STEP_TIME = 2000;
+    private static final int PLAY_STEP_TIME = 7000;
+    private static final int STEPS_AMOUNT = 3;
+    private static final float REVERSED_CHANCE = 0.0f;
+
+
+    private int nextDifficultyIncrement = NEXT_DIFFICULTY_INCREMENT;
+    private float instructionsStepTime = INSTRUCTIONS_STEP_TIME;
+    private float playStepTime = PLAY_STEP_TIME;
+    private int stepsAmount = STEPS_AMOUNT;
+    private float reversedChance = REVERSED_CHANCE;
 
 
 
-    public GameController(PlayActivity playActivity, TextView output) {
+    public GameController(PlayActivity playActivity) {
         this.playActivity = playActivity;
-        this.output = output;
         this.vibrationManager = new VibrationManager(playActivity);
+        this.soundManager = new SoundManager(playActivity);
     }
 
     public void start() {
+        init();
         nextLevel();
     }
+
+
 
     public void onResume() {
 
@@ -44,6 +55,18 @@ public class GameController {
 
     public void onPause() {
         //handler.removeCallbacks(runnable);
+    }
+
+    private void init() {
+        longestStreak = 0;
+        roundCount = 0;
+        nextDifficultyIncrement = NEXT_DIFFICULTY_INCREMENT;
+        currentDifficulty = Difficulty.EASY;
+        instructionsStepTime = INSTRUCTIONS_STEP_TIME;
+        playStepTime = PLAY_STEP_TIME;
+        stepsAmount = STEPS_AMOUNT;
+        reversedChance = REVERSED_CHANCE;
+
     }
 
     public void nextLevel() {
@@ -54,7 +77,7 @@ public class GameController {
             playActivity.viewManager.setDifficulty(currentDifficulty);
         }
 
-        currentLevel = new Level(this, stepsAmount, (int) stepsDelay, reversedChance);
+        currentLevel = new Level(this, stepsAmount, (int) instructionsStepTime, (int) playStepTime, reversedChance);
         currentLevel.start();
     }
 
@@ -63,7 +86,7 @@ public class GameController {
             case EASY:
                 currentDifficulty = Difficulty.MEDIUM;
                 stepsAmount = 4;
-                stepsDelay = 2000;
+                instructionsStepTime = 2000;
                 nextDifficultyIncrement = 2;
                 reversedChance = 0.1f;
                 break;
@@ -72,27 +95,44 @@ public class GameController {
                 stepsAmount = 5;
                 nextDifficultyIncrement = 3;
                 reversedChance = 0.2f;
-                stepsDelay = 1700;
+                instructionsStepTime = 1700;
                 break;
             case HARD:
                 currentDifficulty = Difficulty.EXTREME;
                 stepsAmount= 8;
                 reversedChance = 0.3f;
                 nextDifficultyIncrement = 1000;
-                stepsDelay = 1000;
+                instructionsStepTime = 1000;
                 break;
         }
     }
 
     public void levelEnded(Rating rating, int streak) {
-        longestStreak = Math.max(longestStreak, streak);
+        longestStreak = streak >= stepsAmount ? longestStreak + streak : Math.max(longestStreak, streak);
 
-        playActivity.viewManager.betweenView(
-                rating,
-                longestStreak,
-                roundCount
-        );
-        nextDifficultyIncrement--;
+        if (rating == Rating.F) {
+            livesLeft--;
+
+        }
+
+        playActivity.viewManager.setLivesLeft(livesLeft);
+
+        if (livesLeft <= 0) {
+            gameOver();
+        } else {
+            playActivity.viewManager.betweenView(
+                    rating,
+                    longestStreak,
+                    roundCount,
+                    rating != Rating.F
+            );
+            nextDifficultyIncrement--;
+        }
+    }
+
+    public void gameOver() {
+        playActivity.viewManager.gameOver(Rating.B, roundCount, longestStreak, currentDifficulty);
+        soundManager.gameOver();
     }
 
 

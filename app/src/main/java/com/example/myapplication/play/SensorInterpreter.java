@@ -22,12 +22,22 @@ public class SensorInterpreter implements SensorEventListener {
     private static final float GRAVITY_LOWER_BOUNDS = SensorManager.GRAVITY_EARTH - ERROR_MARGIN/2;
     private static final float GRAVITY_UPPER_BOUNDS = SensorManager.GRAVITY_EARTH + ERROR_MARGIN/2;
 
+    private static final long HOLD_TIME_THRESHOLD = 500000000L;
+    private static final float SCORE_THRESHOLD = 0.6f;
+
     private Orientation orientation;
     private Orientation goal;
     private float scoreAverage = 0.0f;
     private int debugCounter = 0;
     private float weight = 1.0f;
     private boolean reversed = false;
+
+
+    private long correctHoldTime = 0;
+    private long previousTimestamp;
+
+
+    private Runnable correctCallback;
 
 
 
@@ -64,18 +74,21 @@ public class SensorInterpreter implements SensorEventListener {
     @SuppressLint("DefaultLocale")
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (goal == null) {
+        if (goal == null || event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) {
             return;
         }
 
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            //gravity.set(event.values);
-            System.arraycopy(event.values, 0, gravity, 0, event.values.length);
-            logGravityMagnitude(gravity);
-            calculateScoreAverage();
-            orientation = interpretOrientation();
-        }
+        long deltaTimeNano = event.timestamp - previousTimestamp;
 
+
+        //gravity.set(event.values);
+        System.arraycopy(event.values, 0, gravity, 0, event.values.length);
+        logGravityMagnitude(gravity);
+        calculateScoreAverage(deltaTimeNano);
+        orientation = interpretOrientation();
+
+
+        this.previousTimestamp = event.timestamp;
     }
 
     public boolean validateOrientation(Orientation goal) {
@@ -86,26 +99,27 @@ public class SensorInterpreter implements SensorEventListener {
         return scoreAverage;
     }
 
-    public void setGoalOrientation(Orientation goal, boolean reversed) {
+    public void setGoalOrientation(Orientation goal, boolean reversed, Runnable correctCallback) {
         //DEBUG
         Log.d("GAME", String.format("Average: %.2f. Counter: %d", scoreAverage, debugCounter));
         this.goal = goal;
         this.reversed = reversed;
+        this.correctCallback = correctCallback;
         this.weight = 1;
         this.scoreAverage = 0.0f;
+        this.previousTimestamp = android.os.SystemClock.elapsedRealtimeNanos();
     }
 
 
-
-    private void calculateScoreAverage() {
+    //RENAME?
+    private void calculateScoreAverage(long deltaTimeNano) {
         float score = 0.0f;
 
         float magnitude = getAverageGravityMagnitude();
         if (goal == Orientation.SHAKE && (magnitude < GRAVITY_LOWER_BOUNDS || magnitude > GRAVITY_UPPER_BOUNDS)) {
             Log.d("GAME", "shaking");
             score = 1.0f;
-            updateScoreAverage(1.0f);
-            return;
+            //updateScoreAverage(1.0f);
         } else {
             Log.d("GAME", "GOAL: " + goal + ". DOT: " + score);
             score = Math.min(Math.max(0, goal.dot(gravity, SensorManager.GRAVITY_EARTH)), 1);
@@ -115,6 +129,22 @@ public class SensorInterpreter implements SensorEventListener {
         score = reversed ? 2.0f - score : score;
 
         float clampedScore = Math.min(Math.max(score, 0), 1);
+        if (clampedScore > SCORE_THRESHOLD) {
+            correctHoldTime += deltaTimeNano;
+            Log.d("GAME", "Correct hold: " + correctHoldTime/1000000);
+
+            if (correctHoldTime >= HOLD_TIME_THRESHOLD) {
+                correctHoldTime = 0;
+                previousTimestamp = android.os.SystemClock.elapsedRealtimeNanos();
+                correctCallback.run();
+
+            }
+        } else {
+            correctHoldTime = 0;
+            Log.d("GAME", "WRONGGGGG HOLD");
+        }
+
+
         updateScoreAverage(clampedScore);
     }
 

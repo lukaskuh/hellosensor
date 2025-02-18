@@ -1,5 +1,6 @@
 package com.example.myapplication.play;
 
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -9,12 +10,11 @@ import com.example.myapplication.R;
 
 import com.example.myapplication.PlayActivity;
 
-import java.util.TreeMap;
+import org.w3c.dom.Text;
 
 public class ViewManager {
     private final PlayActivity playActivity;
     private final View rootView;
-    private final TreeMap<GameState, View> layouts = new TreeMap<>();
     private final TextView countdownPromptText;
     private GameState gameState = GameState.PRE;
     private final TextView feedbackText;
@@ -22,6 +22,13 @@ public class ViewManager {
     private final TextView ratingText;
     private final TextView streakText;
     private final TextView roundCountText;
+    private final TextView playCountdownText;
+    private final TextView betweenPromptText;
+    private final HeartCountView heartCountView;
+    private final TextView finalRoundCountText;
+    private final TextView finalDifficultyText;
+    private final TextView finalStreakText;
+    private final TextView finalRatingText;
 
 
     private final ProgressDotsView playProgress;
@@ -43,10 +50,16 @@ public class ViewManager {
         this.streakText = playActivity.findViewById(R.id.streakText);
         this.roundCountText = playActivity.findViewById(R.id.roundCountText);
         this.countdownPromptText = playActivity.findViewById(R.id.countdownPrompt);
+        this.playCountdownText = playActivity.findViewById(R.id.playCountdown);
+        this.betweenPromptText = playActivity.findViewById(R.id.betweenPrompt);
+        this.heartCountView = playActivity.findViewById(R.id.heartCount);
+
+        this.finalDifficultyText = playActivity.findViewById(R.id.finalDifficultyText);
+        this.finalRatingText = playActivity.findViewById(R.id.finalRatingText);
+        this.finalRoundCountText = playActivity.findViewById(R.id.finalRoundCountText);
+        this.finalStreakText = playActivity.findViewById(R.id.finalStreakText);
 
         this.orientationShower = new OrientationShower(playActivity.findViewById(R.id.PoseView));
-//        layouts.put(GameState.PLAY, playActivity.findViewById(R.id.PlayLayout));
-        //layouts.put(GameState.PRE, playActivity.findViewById(R.id.));
     }
 
     public void setOrientationAmount(int i) {
@@ -100,7 +113,7 @@ public class ViewManager {
     }
 
     public void setBackgroundTinted() {
-        rootView.setBackgroundColor(ContextCompat.getColor(playActivity, R.color.md_theme_primaryFixed));
+        rootView.setBackgroundColor(ContextCompat.getColor(playActivity, R.color.md_theme_background));
     }
 
     public void setBackgroundPositive() {
@@ -145,11 +158,19 @@ public class ViewManager {
     }
 
 
-    public void betweenView(Rating rating, int streak, int roundCount) {
+    public void betweenView(Rating rating, int streak, int roundCount, boolean positive) {
         setView(GameState.BETWEEN);
         ratingText.setText(rating.toString());
         streakText.setText(String.valueOf(streak));
         roundCountText.setText(String.valueOf(roundCount));
+
+        int betweenPrompt = positive ? R.string.between_prompt_positive : R.string.between_prompt_negative;
+        betweenPromptText.setText(betweenPrompt);
+    }
+
+    public void setLivesLeft(int livesLeft) {
+        Log.d("GAME", "setLivesLeft: " + livesLeft);
+        heartCountView.setLivesLeft(livesLeft);
     }
 
     public void setDifficulty(Difficulty currentDifficulty) {
@@ -165,5 +186,18 @@ public class ViewManager {
         } else {
             setBackgroundPositive();
         }
+    }
+
+    public void setPlayRemainingCountdown(float time) {
+        playCountdownText.setText(String.format("%.1f", time));
+    }
+
+    public void gameOver(Rating finalRating, int finalRoundCount, int finalStreak, Difficulty finalDifficulty) {
+        setView(GameState.POST);
+        finalRatingText.setText(finalRating.toString());
+        finalDifficultyText.setText(finalDifficulty.toString());
+        finalStreakText.setText(String.valueOf(finalStreak));
+        finalRoundCountText.setText(String.valueOf(finalRoundCount));
+
     }
 }

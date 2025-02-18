@@ -5,4 +5,9 @@
         <attr name="dotSize" format="dimension" />
         <attr name="dotSpacing" format="dimension" />
     </declare-styleable>
+    <declare-styleable name="HeartCountView">
+        <attr name="totalLives" format="integer" />
+        <attr name="heartSize" format="dimension" />
+        <attr name="heartSpacing" format="dimension" />
+    </declare-styleable>
 </resources>

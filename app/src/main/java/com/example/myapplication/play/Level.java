@@ -83,10 +83,9 @@ public class Level {
 
         for (int i = 1; i < queueSize; i++) {
             reversed[i] = PRNG.nextFloat() < reversedChance;
-            queue[i] = Orientation.SHAKE;
-//            do {
-//                queue[i] = Orientation.randomOrientation();
-//            } while (queue[i] == queue[i-1]);
+            do {
+                queue[i] = Orientation.randomOrientation();
+            } while (queue[i] == queue[i-1]);
         }
 
     }

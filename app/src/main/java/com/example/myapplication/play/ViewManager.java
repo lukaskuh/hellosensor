@@ -188,6 +188,10 @@ public class ViewManager {
         }
     }
 
+    public void clearOrientation() {
+        orientationShower.clearOrientation();
+    }
+
     public void setPlayRemainingCountdown(float time) {
         playCountdownText.setText(String.format("%.1f", time));
     }

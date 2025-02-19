@@ -17,6 +17,10 @@ public class OrientationShower {
         imageView.setImageResource(getOrientationSource(orientation));
     }
 
+    public void clearOrientation() {
+        imageView.setImageResource(0);
+    }
+
     private int getOrientationSource(Orientation orientation) {
         switch (orientation) {
             case PORTRAIT:

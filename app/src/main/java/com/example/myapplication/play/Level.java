@@ -40,6 +40,7 @@ public class Level {
         this.reversedChance = reversedChance;
 
         this.playCountdown = new PlayCountdown(playStepTime, 100);
+        gameController.playActivity.viewManager.clearOrientation();
     }
 
     public void start() {
@@ -75,6 +76,7 @@ public class Level {
         scores = new float[queueSize];
 
         gameController.playActivity.viewManager.setOrientationAmount(queueSize);
+        gameController.playActivity.viewManager.clearOrientation();
 
         queue[0] = Orientation.randomOrientation();
         reversed[0] = PRNG.nextFloat() < reversedChance;

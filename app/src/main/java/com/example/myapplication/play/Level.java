@@ -4,6 +4,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -11,7 +12,7 @@ public class Level {
 
     private final GameController gameController;
 
-    private int queueSize = 4;
+    private int queueSize;
     private Orientation[] queue;
     private boolean[] reversed;
     private float[] scores = new float[queueSize];
@@ -38,7 +39,6 @@ public class Level {
         this.instructionsStepTime = instructionsStepTime;
         this.playStepTime = playStepTime;
         this.reversedChance = reversedChance;
-
         this.playCountdown = new PlayCountdown(playStepTime, 100);
         gameController.playActivity.viewManager.clearOrientation();
     }
@@ -52,17 +52,16 @@ public class Level {
 
         startCountdown()
                 .thenRun(() -> {
+                    gameController.playActivity.viewManager.clearOrientation();
                     gameController.playActivity.viewManager.setView(GameState.INSTRUCTIONS);
                 })
                 .thenCompose(v -> showSequence())
                 .thenRun(() -> {
-                    gameController.soundManager.blastOffShort();
                     gameController.playActivity.viewManager.setView(GameState.COUNTDOWN);
                     gameController.playActivity.viewManager.setCountdownMode(GameState.PLAY);
                 })
                 .thenCompose(v -> startCountdown(true))
                 .thenRun(() -> {
-                    gameController.soundManager.blastOff();
                     gameController.playActivity.viewManager.setView(GameState.PLAY);
                     nextGoal();
                 });
@@ -74,6 +73,7 @@ public class Level {
         queue = new Orientation[queueSize];
         reversed = new boolean[queueSize];
         scores = new float[queueSize];
+        Arrays.fill(scores, -1f);
 
         gameController.playActivity.viewManager.setOrientationAmount(queueSize);
         gameController.playActivity.viewManager.clearOrientation();
@@ -83,10 +83,10 @@ public class Level {
 
         for (int i = 1; i < queueSize; i++) {
             reversed[i] = PRNG.nextFloat() < reversedChance;
-
-            do {
-                queue[i] = Orientation.randomOrientation();
-            } while (queue[i] == queue[i-1]);
+            queue[i] = Orientation.SHAKE;
+//            do {
+//                queue[i] = Orientation.randomOrientation();
+//            } while (queue[i] == queue[i-1]);
         }
 
     }
@@ -94,13 +94,15 @@ public class Level {
 
 
     // https://chatgpt.com/share/67a53d8d-6e40-8004-9e96-fc0fbd93ab76
-    private CompletableFuture<Void> showFeedback(float score) {
+    private CompletableFuture<Void> showFeedback() {
+        boolean point = scores[queueCounter - 1] >= 0;
+
         CompletableFuture<Void> future = new CompletableFuture<>();
 
 
         gameController.playActivity.viewManager.setView(GameState.FEEDBACK);
 
-        if (score > 0.6f) {
+        if (point) {
             gameController.playActivity.viewManager.feedbackPositive();
             gameController.vibrationManager.correct();
             gameController.soundManager.correct();
@@ -116,20 +118,25 @@ public class Level {
     }
 
     public void endLevel() {
-        gameController.sensorInterpreter.setGoalOrientation(null, false, () -> {});
+        gameController.sensorInterpreter.setGoalOrientation(null, false, i -> {});
 
-        float finalScore = 0.0f;
-
-        for (float s : scores) {
-            finalScore += s;
-        }
-
-        finalScore /= scores.length;
+        float finalScore = calculateFinalScore();
 
         gameController.soundManager.finish();
 
         gameController.levelEnded(Rating.rateScore(finalScore), currentStreak);
         Log.d("GAME", "LEVEL FINISHED. FINAL SCORE: " + finalScore);
+    }
+
+    private float calculateFinalScore() {
+        float sum = 0.0f;
+
+        for (float score : scores) {
+            sum += Math.round((1.0f - score / playStepTime) * 500);
+            Log.d("GAME", "calculateFinalScore: " + sum);
+        }
+
+        return sum;
     }
 
     private void nextGoal() {
@@ -140,7 +147,7 @@ public class Level {
             endLevel();
         }
 
-        gameController.playActivity.viewManager.setOrientationProgress(queueCounter + 1);
+        gameController.playActivity.viewManager.setPlayProgress(queueCounter + 1, true);
 
         gameController.sensorInterpreter.setGoalOrientation(queue[queueCounter], reversed[queueCounter], this::correct);
         queueCounter++;
@@ -149,17 +156,14 @@ public class Level {
     }
 
     private void postGoal() {
-        float avg = gameController.sensorInterpreter.getScoreAverage();
-        scores[queueCounter - 1] = avg;
-
-
-        showFeedback(avg)
+        showFeedback()
                 .thenRun(this::nextGoal);
 
     }
 
-    public void correct() {
+    public void correct(int time) {
         float avg = gameController.sensorInterpreter.getScoreAverage();
+        scores[queueCounter - 1] = time;
 
         if (avg > 0.6f) {
             currentStreak++;
@@ -173,7 +177,7 @@ public class Level {
     }
 
     private void fail() {
-        gameController.sensorInterpreter.setGoalOrientation(null, false, () -> {});
+        gameController.sensorInterpreter.setGoalOrientation(null, false, i -> {});
         Log.d("GAME", "fail: ");
         postGoal();
     }
@@ -198,7 +202,12 @@ public class Level {
                     gameController.playActivity.viewManager.setCountdown("Ready?");
                 } else if (millisUntilFinished < 1000) {
                     gameController.playActivity.viewManager.setCountdown("Go!");
-                    
+
+                    if (quick) {
+                        gameController.soundManager.blastOff();
+                    } else {
+                        gameController.soundManager.blastOffShort();
+                    }
                 } else {
                     gameController.playActivity.viewManager.setCountdown(String.format("%s", millisUntilFinished/1000));
                     gameController.soundManager.tick();
@@ -210,7 +219,6 @@ public class Level {
             public void onFinish() {
                 future.complete(null);
                 gameController.vibrationManager.correct();
-                gameController.soundManager.correct();
             }
 
         }.start();
@@ -232,7 +240,7 @@ public class Level {
                 );
                 gameController.playActivity.viewManager.setOrientation(queue[queueCounter], reversed[queueCounter]);
                 queueCounter++;
-                gameController.playActivity.viewManager.setOrientationProgress(queueCounter);
+                gameController.playActivity.viewManager.setInstructionsProgress(queueCounter);
             }
 
 
@@ -270,5 +278,9 @@ public class Level {
             Log.d("GAME", "ON FINISH!!!!!!!!!!!!!!!!!!!!");
             fail();
         }
+    }
+
+    public interface CorrectCallback {
+        void onCorrect(int timeMs);
     }
 }

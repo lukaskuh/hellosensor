@@ -1,5 +1,4 @@
 package com.example.myapplication;
-
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -8,21 +7,21 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
 import com.example.myapplication.play.GameController;
 import com.example.myapplication.play.GameState;
+import com.example.myapplication.play.Orientation;
+import com.example.myapplication.play.SensorInterpreter;
 import com.example.myapplication.play.ViewManager;
 
 public class PlayActivity extends AppCompatActivity implements SensorEventListener {
     public ViewManager viewManager;
     private GameController gameController;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

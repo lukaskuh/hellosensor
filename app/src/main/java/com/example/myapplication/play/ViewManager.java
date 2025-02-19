@@ -31,7 +31,7 @@ public class ViewManager {
     private final TextView finalRatingText;
 
 
-    private final ProgressDotsView playProgress;
+    private final ProgressDotsFeedbackView playProgress;
     private final ProgressDotsView instructionsProgress;
 
     private final OrientationShower orientationShower;
@@ -87,15 +87,12 @@ public class ViewManager {
     }
 
 
-    public void setOrientationProgress(int i) {
-        switch (gameState) {
-            case PLAY:
-                playProgress.setProgress(i);
-                break;
-            case INSTRUCTIONS:
-                instructionsProgress.setProgress(i);
-                break;
-        }
+    public void setInstructionsProgress(int i) {
+        instructionsProgress.setProgress(i);
+    }
+
+    public void setPlayProgress(int i, boolean failed) {
+        playProgress.setProgress(i, failed);
     }
 
     public void feedbackPositive() {

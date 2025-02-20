@@ -60,7 +60,7 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onPause() {
         super.onPause();
-
+        gameController.onPause();
         gameController.sensorInterpreter.onPause();
     }
 

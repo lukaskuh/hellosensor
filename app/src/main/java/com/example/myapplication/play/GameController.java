@@ -1,6 +1,7 @@
 package com.example.myapplication.play;
 
 
+import android.util.Log;
 import android.widget.TextView;
 
 import com.example.myapplication.PlayActivity;
@@ -16,12 +17,13 @@ public class GameController {
     private int livesLeft = 3;
 
     private int longestStreak;
+    private float totalScore = 0.0f;
 
     private int roundCount = 0;
     private Difficulty currentDifficulty = Difficulty.EASY;
 
 
-    private static final int NEXT_DIFFICULTY_INCREMENT = 1;
+    private static final int NEXT_DIFFICULTY_INCREMENT = 2;
     private static final int INSTRUCTIONS_STEP_TIME = 2000;
     private static final int PLAY_STEP_TIME = 7000;
     private static final int STEPS_AMOUNT = 3;
@@ -54,7 +56,10 @@ public class GameController {
     }
 
     public void onPause() {
-        //handler.removeCallbacks(runnable);
+        if (currentLevel != null) {
+            currentLevel.kill();
+        }
+        levelEnded(-1, 0);
     }
 
     private void init() {
@@ -107,13 +112,16 @@ public class GameController {
         }
     }
 
-    public void levelEnded(Rating rating, int streak) {
+    public void levelEnded(float roundScore, int streak) {
         longestStreak = streak >= stepsAmount ? longestStreak + streak : Math.max(longestStreak, streak);
 
-        if (rating == Rating.F) {
+        if (roundScore < 0) {
             livesLeft--;
-
+            roundScore = 0.0f;
         }
+
+        totalScore += roundScore;
+        Log.d("GAME", "totalSCORE: " + totalScore);
 
         playActivity.viewManager.setLivesLeft(livesLeft);
 
@@ -121,17 +129,18 @@ public class GameController {
             gameOver();
         } else {
             playActivity.viewManager.betweenView(
-                    rating,
+                    roundScore,
+                    totalScore,
                     longestStreak,
                     roundCount,
-                    rating != Rating.F
+                    roundScore > 0
             );
             nextDifficultyIncrement--;
         }
     }
 
     public void gameOver() {
-        playActivity.viewManager.gameOver(Rating.B, roundCount, longestStreak, currentDifficulty);
+        playActivity.viewManager.gameOver(totalScore, roundCount, longestStreak, currentDifficulty);
         soundManager.gameOver();
     }
 

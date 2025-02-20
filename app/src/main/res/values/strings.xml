@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Simon\'s memory game!</string>
     <string name="about_button"><u>About &amp; How to play</u></string>
     <string name="play_button">Play</string>
     <string name="log_button">Log</string>
@@ -38,5 +38,7 @@
     <string name="game_phase">Game phase</string>
     <string name="instructions_phase_instructions_1">The instructions phase will show a sequence of phone poses, memorize these. If the background is green you need to mimic it during the game phase. If the background is red during the pose, you need to do the opposite of the pose, i.e. tilt phone right if the screen shows a left pose or hold phone still if the screen tells you to shake!</string>
     <string name="game_phase_instructions_1">During the game phase you need to act out the sequence you have memorized. For each phone pose, you need to act out the pose and hold it for half a second in the specified amount of time. When the difficulty increases, the time to act out a pose shortens and the amount of poses to memorize increases.</string>
-    <string name="game_phase_instructions_2">You have three lives in total and if your round rating is too low, you lose a live. When all lives are lost you lose the game. Try to get as far as possible! Good luck!</string>
+    <string name="game_phase_instructions_2">If you fail three poses in a round, you lose a live. You have three lives in total and when all lives are lost you lose the game. Try to get as far as possible! Good luck!</string>
+    <string name="total_score">Total score:</string>
+    <string name="round_score">Round score:</string>
 </resources>

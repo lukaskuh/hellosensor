@@ -30,6 +30,7 @@ public class Level {
 
 
     private final PlayCountdown playCountdown;
+    private CountDownTimer currentProcess;
 
     private int currentStreak = 0;
 
@@ -91,6 +92,14 @@ public class Level {
     }
 
 
+    public void kill() {
+        playCountdown.cancel();
+        if (currentProcess != null) {
+            currentProcess.cancel();
+        }
+    }
+
+
 
     // https://chatgpt.com/share/67a53d8d-6e40-8004-9e96-fc0fbd93ab76
     private CompletableFuture<Void> showFeedback() {
@@ -123,16 +132,25 @@ public class Level {
 
         gameController.soundManager.finish();
 
-        gameController.levelEnded(Rating.rateScore(finalScore), currentStreak);
+        gameController.levelEnded(finalScore, currentStreak);
         Log.d("GAME", "LEVEL FINISHED. FINAL SCORE: " + finalScore);
     }
 
     private float calculateFinalScore() {
         float sum = 0.0f;
+        int failedCount = 0;
 
         for (float score : scores) {
-            sum += Math.round((1.0f - score / playStepTime) * 500);
-            Log.d("GAME", "calculateFinalScore: " + sum);
+            if (score < 0) {
+                failedCount++;
+
+                if (failedCount >= 3) {
+                    return -1;
+                }
+            } else {
+                sum += Math.round((1.0f - score / playStepTime) * 500);
+                Log.d("GAME", "calculateFinalScore: " + sum);
+            }
         }
 
         return sum;
@@ -146,7 +164,14 @@ public class Level {
             endLevel();
         }
 
-        gameController.playActivity.viewManager.setPlayProgress(queueCounter + 1, true);
+
+        gameController.playActivity.viewManager.setPlayProgress(queueCounter + 1, false);
+        if (queueCounter > 0) {
+            Log.d("GAME", "prev score: " + scores[queueCounter - 1]);
+            boolean failed = scores[queueCounter - 1] < 0;
+            gameController.playActivity.viewManager.setPlayFeedback(queueCounter, failed);
+        }
+
 
         gameController.sensorInterpreter.setGoalOrientation(queue[queueCounter], reversed[queueCounter], this::correct);
         queueCounter++;
@@ -190,10 +215,14 @@ public class Level {
         long millisInFuture = quick ? 3000 : 6500;
         gameController.playActivity.viewManager.setBackgroundPositive();
 
-        new CountDownTimer(millisInFuture, 1000) {
+        if (!quick) {
+            gameController.soundManager.tick();
+            gameController.vibrationManager.tick();
+        }
+
+        currentProcess = new CountDownTimer(millisInFuture, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                Log.d("TAG", "onTick: ");
 
                 if (millisUntilFinished > 5500) {
                     gameController.playActivity.viewManager.setCountdown("");
@@ -220,7 +249,9 @@ public class Level {
                 gameController.vibrationManager.correct();
             }
 
-        }.start();
+        };
+
+        currentProcess.start();
 
         return future;
     }
@@ -229,7 +260,7 @@ public class Level {
         CompletableFuture<Void> future = new CompletableFuture<>();
         Log.d("GAME", "millisInFuture : " + instructionsStepTime * (queueSize) + ". Delay: " + instructionsStepTime);
 
-        new CountDownTimer((long) instructionsStepTime * (queueSize), instructionsStepTime) {
+        currentProcess = new CountDownTimer((long) instructionsStepTime * (queueSize), instructionsStepTime) {
             @Override
             public void onTick(long millisUntilFinished) {
                 gameController.soundManager.correct();
@@ -248,7 +279,9 @@ public class Level {
                 queueCounter = 0;
                 future.complete(null);
             }
-        }.start();
+        };
+
+        currentProcess.start();
 
         return future;
     }

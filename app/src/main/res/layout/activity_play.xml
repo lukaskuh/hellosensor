@@ -74,7 +74,7 @@
                 android:id="@+id/PlayLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="visible">
+                android:visibility="gone">
 
                 <ImageView
                     android:id="@+id/imageView"
@@ -114,7 +114,7 @@
                 android:id="@+id/BetweenLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone"
+                android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -156,17 +156,29 @@
 
                     <!--                        -->
                     <!--                    </LinearLayout>-->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:orientation="vertical"
+                        android:layout_gravity="center_horizontal"
+                        >
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                            android:text="@string/round_score"
 
+                            android:layout_gravity="center_horizontal"/>
                     <TextView
                         android:id="@+id/ratingText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="32dp"
-                        android:layout_marginBottom="16dp"
-                        android:text="@string/rating_placeholder"
+                        android:text="@string/round_placeholder"
                         android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall" />
-
+                    </LinearLayout>
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -194,7 +206,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginHorizontal="16dp"
-                        android:layout_marginBottom="64dp"
+                        android:layout_marginBottom="8dp"
                         android:orientation="horizontal">
 
                         <TextView
@@ -214,11 +226,35 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginHorizontal="16dp"
+                        android:layout_marginBottom="64dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/totalScoreLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/total_score"
+                            android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+                        <TextView
+                            android:id="@+id/totalScoreText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/streak_placeholder"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:id="@+id/betweenButtonContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:visibility="visible">
 
                         <Button
                             android:id="@+id/giveUpButton"

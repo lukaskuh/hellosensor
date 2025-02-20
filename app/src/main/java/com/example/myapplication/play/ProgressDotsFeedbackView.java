@@ -35,6 +35,10 @@ public class ProgressDotsFeedbackView extends ProgressDotsView {
         updateProgress(progress);
     }
 
+    public void setFeedback(int i, boolean failed) {
+        fails[i] = failed;
+    }
+
     private void updateProgress(int progress) {
         removeAllViews(); // Clear existing dots
 

@@ -16,7 +16,7 @@ public class SensorInterpreter implements SensorEventListener {
 
     private final float[] gravity = new float[3];
 
-    private final float[] gravityMagnitudes = new float[10];
+    private final float[] gravityMagnitudes = new float[5];
     private int gravityMagnitudeIteration;
 
     private static final float SHAKE_THRESHOLD = 0.8f;
@@ -108,20 +108,25 @@ public class SensorInterpreter implements SensorEventListener {
 
     //RENAME?
     private void calculateScoreAverage(long deltaTimeNano) {
-        float score = 0.0f;
+        float score = -1.0f;
 
         float avgMagnitude = getAverageGravityMagnitude();
-        if (goal == Orientation.SHAKE && Math.abs(avgMagnitude - SensorManager.GRAVITY_EARTH) > SHAKE_THRESHOLD) {
+        if (goal == Orientation.SHAKE) {
             Log.d("GAME", "shaking");
-            score = 1.0f;
+            if (Math.abs(avgMagnitude - SensorManager.GRAVITY_EARTH) > SHAKE_THRESHOLD) {
+                score = 1.0f;
+            }
             //updateScoreAverage(1.0f);
         } else {
             Log.d("GAME", "GOAL: " + goal + ". DOT: " + score);
-            score = Math.min(Math.max(0, goal.dot(gravity, SensorManager.GRAVITY_EARTH)), 1);
+            score = goal.dot(gravity, SensorManager.GRAVITY_EARTH);
         }
 
 
-        score = reversed ? 2.0f - score : score;
+        Log.d("GAME", "score before reversed: " + score);
+
+        score = reversed ? score * -1 : score;
+        Log.d("GAME", "score after reversed: " + score);
 
         float clampedScore = Math.min(Math.max(score, 0), 1);
         if (clampedScore > SCORE_THRESHOLD) {

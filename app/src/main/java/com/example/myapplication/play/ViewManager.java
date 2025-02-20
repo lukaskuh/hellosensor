@@ -1,16 +1,12 @@
 package com.example.myapplication.play;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-
 import androidx.core.content.ContextCompat;
-
 import com.example.myapplication.R;
-
 import com.example.myapplication.PlayActivity;
-
-import org.w3c.dom.Text;
 
 public class ViewManager {
     private final PlayActivity playActivity;
@@ -29,6 +25,7 @@ public class ViewManager {
     private final TextView finalDifficultyText;
     private final TextView finalStreakText;
     private final TextView finalRatingText;
+    private final TextView totalScoreText;
 
 
     private final ProgressDotsFeedbackView playProgress;
@@ -53,6 +50,7 @@ public class ViewManager {
         this.playCountdownText = playActivity.findViewById(R.id.playCountdown);
         this.betweenPromptText = playActivity.findViewById(R.id.betweenPrompt);
         this.heartCountView = playActivity.findViewById(R.id.heartCount);
+        this.totalScoreText = playActivity.findViewById(R.id.totalScoreText);
 
         this.finalDifficultyText = playActivity.findViewById(R.id.finalDifficultyText);
         this.finalRatingText = playActivity.findViewById(R.id.finalRatingText);
@@ -155,11 +153,13 @@ public class ViewManager {
     }
 
 
-    public void betweenView(Rating rating, int streak, int roundCount, boolean positive) {
+    @SuppressLint("DefaultLocale")
+    public void betweenView(float roundScore, float totalScore, int streak, int roundCount, boolean positive) {
         setView(GameState.BETWEEN);
-        ratingText.setText(rating.toString());
+        ratingText.setText(String.format("%.0f", roundScore));
         streakText.setText(String.valueOf(streak));
         roundCountText.setText(String.valueOf(roundCount));
+        totalScoreText.setText(String.format("%.0f", totalScore));
 
         int betweenPrompt = positive ? R.string.between_prompt_positive : R.string.between_prompt_negative;
         betweenPromptText.setText(betweenPrompt);
@@ -193,9 +193,14 @@ public class ViewManager {
         playCountdownText.setText(String.format("%.1f", time));
     }
 
-    public void gameOver(Rating finalRating, int finalRoundCount, int finalStreak, Difficulty finalDifficulty) {
+    public void setPlayFeedback(int i, boolean failed) {
+        playProgress.setFeedback(i, failed);
+    }
+
+    @SuppressLint("DefaultLocale")
+    public void gameOver(float finalScore, int finalRoundCount, int finalStreak, Difficulty finalDifficulty) {
         setView(GameState.POST);
-        finalRatingText.setText(finalRating.toString());
+        finalRatingText.setText(String.format("%.0f", finalScore));
         finalDifficultyText.setText(finalDifficulty.toString());
         finalStreakText.setText(String.valueOf(finalStreak));
         finalRoundCountText.setText(String.valueOf(finalRoundCount));

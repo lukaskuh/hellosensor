@@ -1,10 +1,14 @@
 ## Game images
 ### In game view
-![Play screenshot](images/play_1.png "In game screenshot")
-![Play screenshot](images/play_2.png "In game screenshot")
-![Play screenshot](images/play_3.png "In game screenshot")
-![Play screenshot](images/play_4.png "In game screenshot")
+<div align="center">
+  <img src="images/play_1.png" width="200"/>
+  <img src="images/play_2.png" width="200"/>
+  <img src="images/play_3.png" width="200"/>
+  <img src="images/play_4.png" width="200"/>
+</div>
 
 ### About view
-![About page](images/about_1.png "About")
-![About page](images/about_2.png "About")
+<div align="center">
+  <img src="images/about_1.png" width="200"/>
+  <img src="images/about_2.png" width="200"/>
+</div>
